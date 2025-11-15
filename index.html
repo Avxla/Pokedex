@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex Responsiva</title>
+    <style>
+        /* RESET Y ESTILOS BASE */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding-top: 120px; /* Espacio para el buscador fijo */
+        }
+
+        /* BUSCADOR FIJO */
+        .buscador-fijo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            border-bottom: 3px solid #d00000;
+        }
+
+        .contenedor-buscador {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            gap: 15px;
+        }
+
+        .titulo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #d00000;
+            text-shadow: 2px 2px 0 #ffde00;
+            margin-right: 10px;
+        }
+
+        .finder {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .finder input {
+            width: 280px;
+            padding: 12px 20px;
+            border: 3px solid #d00000;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .finder input:focus {
+            border-color: #ff4d4d;
+            box-shadow: 0 0 12px rgba(255, 77, 77, 0.6);
+            transform: scale(1.02);
+        }
+
+        .pokeball-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(#ff0000 50%, #ffffff 50%);
+            box-shadow: 0 4px 0 #b30000, 0 0 10px rgba(255, 0, 0, 0.6);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .pokeball-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 0 #b30000, 0 0 15px rgba(255, 0, 0, 0.8);
+        }
+
+        .pokeball-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 0 #b30000;
+        }
+
+        .pokeball-btn::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border: 4px solid black;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+
+        .pokeball-btn::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: black;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        /* SECCIÓN POKÉMON */
+        #seccion-pokemon {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto 40px;
+            padding: 0 20px;
+        }
+
+        .contenedor {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: stretch;
+        }
+
+        .columna {
+            flex: 1;
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .columna:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        #card-pokemon {
+            transition: background 0.6s ease;
+            align-items: center;
+            text-align: center;
+        }
+
+        #card-pokemon h1 {
+            font-size: 28px;
+            text-transform: capitalize;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .columna img {
+            width: 100%;
+            max-width: 250px;
+            display: block;
+            margin: 15px auto;
+            filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.2));
+        }
+
+        #card-pokemon h3 {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        #numero {
+            font-size: 42px;
+            text-align: center;
+            color: #d00000;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .columna h3 {
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        /* TIPOS Y DEBILIDADES */
+        .type-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            text-transform: uppercase;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .type-normal { background: #A8A77A; }
+        .type-fire { background: #EE8130; }
+        .type-water { background: #6390F0; }
+        .type-electric { background: #F7D02C; color: #333; }
+        .type-grass { background: #7AC74C; }
+        .type-ice { background: #96D9D6; color: #333; }
+        .type-fighting { background: #C22E28; }
+        .type-poison { background: #A33EA1; }
+        .type-ground { background: #E2BF65; color: #333; }
+        .type-flying { background: #A98FF3; }
+        .type-psychic { background: #F95587; }
+        .type-bug { background: #A6B91A; }
+        .type-rock { background: #B6A136; }
+        .type-ghost { background: #735797; }
+        .type-dragon { background: #6F35FC; }
+        .type-dark { background: #705746; }
+        .type-steel { background: #B7B7CE; color: #333; }
+        .type-fairy { background: #D685AD; }
+
+        #tipos, #debilidades {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        /* ESTADÍSTICAS */
+        .columna h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #d00000;
+            font-size: 24px;
+        }
+
+        .stat-container {
+            margin-bottom: 18px;
+        }
+
+        .stat-title {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #444;
+        }
+
+        .bar {
+            width: 100%;
+            height: 22px;
+            background: #e0e0e0;
+            border-radius: 11px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.8s ease;
+            border-radius: 11px;
+        }
+
+        /* COLORES PARA TIPOS */
+        :root {
+            --normal: #A8A77A;
+            --fire: #EE8130;
+            --water: #6390F0;
+            --electric: #F7D02C;
+            --grass: #7AC74C;
+            --ice: #96D9D6;
+            --fighting: #C22E28;
+            --poison: #A33EA1;
+            --ground: #E2BF65;
+            --flying: #A98FF3;
+            --psychic: #F95587;
+            --bug: #A6B91A;
+            --rock: #B6A136;
+            --ghost: #735797;
+            --dragon: #6F35FC;
+            --dark: #705746;
+            --steel: #B7B7CE;
+            --fairy: #D685AD;
+        }
+
+        /* MEDIA QUERIES PARA RESPONSIVIDAD */
+        @media (max-width: 1024px) {
+            .contenedor {
+                gap: 15px;
+            }
+            
+            .columna {
+                padding: 18px;
+            }
+            
+            #numero {
+                font-size: 36px;
+            }
+            
+            .finder input {
+                width: 240px;
+            }
+        }
+
+        @media (max-width: 800px) {
+            body {
+                padding-top: 140px;
+            }
+            
+            .buscador-fijo {
+                padding: 12px 0;
+            }
+            
+            .contenedor-buscador {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .titulo {
+                font-size: 24px;
+                margin-right: 0;
+            }
+            
+            .contenedor {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            /* Orden en móvil:
+               1 = columna 2 → ARRIBA
+               2 = columna 1
+               3 = columna 3
+            */
+            .columna:nth-child(2) { order: 1; }
+            .columna:nth-child(1) { order: 2; }
+            .columna:nth-child(3) { order: 3; }
+
+            /* La columna de arriba se vuelve horizontal */
+            .columna:nth-child(2) {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-around;
+                flex-wrap: wrap;
+                padding: 15px;
+            }
+
+            .columna:nth-child(2) h3 {
+                margin: 0 10px;
+            }
+
+            #tipos, #debilidades {
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .finder input {
+                width: 90%;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding-top: 150px;
+            }
+            
+            .titulo {
+                font-size: 22px;
+            }
+            
+            .columna {
+                padding: 15px;
+            }
+            
+            #numero {
+                font-size: 32px;
+            }
+            
+            .columna:nth-child(2) {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .columna:nth-child(2) h3 {
+                margin: 8px 0;
+            }
+            
+            .type-badge {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .stat-title {
+                font-size: 14px;
+            }
+            
+            .bar {
+                height: 18px;
+            }
+            
+            .finder input {
+                font-size: 14px;
+                padding: 10px 15px;
+            }
+            
+            .pokeball-btn {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- BUSCADOR FIJO EN LA PARTE SUPERIOR -->
+    <div class="buscador-fijo">
+        <div class="contenedor-buscador">
+            <div class="titulo">Pokédex</div>
+            <div class="finder">
+                <input id="pok" type="text" placeholder="Escribe nombre o número del Pokémon">
+                <button class="pokeball-btn" onclick="traer()"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN DE INFORMACIÓN DEL POKÉMON -->
+    <div id="seccion-pokemon" class="contenedor">
+
+        <div class="columna" id="card-pokemon">
+            <h1 id="nombre"></h1>
+            <img id="img">
+            <h3>Altura: <span id="altura"></span></h3>
+            <h3>Peso: <span id="peso"></span></h3>
+        </div>
+
+        <div class="columna">
+            <h3 id="numero"></h3>
+            <h3>Tipo(s):</h3>
+            <div id="tipos"></div>
+            <h3>Debilidades:</h3>
+            <div id="debilidades"></div>
+        </div>
+
+        <div class="columna">
+            <h2>Estadísticas</h2>
+
+            <div class="stat-container">
+                <span class="stat-title">HP: <span id="hp"></span></span>
+                <div class="bar"><div id="bar-hp" class="bar-fill"></div></div>
+            </div>
+
+            <div class="stat-container">
+                <span class="stat-title">Ataque: <span id="ataque"></span></span>
+                <div class="bar"><div id="bar-ataque" class="bar-fill"></div></div>
+            </div>
+
+            <div class="stat-container">
+                <span class="stat-title">Defensa: <span id="defensa"></span></span>
+                <div class="bar"><div id="bar-defensa" class="bar-fill"></div></div>
+            </div>
+
+            <div class="stat-container">
+                <span class="stat-title">Ataque Especial: <span id="spatk"></span></span>
+                <div class="bar"><div id="bar-spatk" class="bar-fill"></div></div>
+            </div>
+
+            <div class="stat-container">
+                <span class="stat-title">Defensa Especial: <span id="spdef"></span></span>
+                <div class="bar"><div id="bar-spdef" class="bar-fill"></div></div>
+            </div>
+
+            <div class="stat-container">
+                <span class="stat-title">Velocidad: <span id="velocidad"></span></span>
+                <div class="bar"><div id="bar-velocidad" class="bar-fill"></div></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        function getColor(type) {
+            const colors = {
+                normal: "var(--normal)",
+                fire: "var(--fire)",
+                water: "var(--water)",
+                electric: "var(--electric)",
+                grass: "var(--grass)",
+                ice: "var(--ice)",
+                fighting: "var(--fighting)",
+                poison: "var(--poison)",
+                ground: "var(--ground)",
+                flying: "var(--flying)",
+                psychic: "var(--psychic)",
+                bug: "var(--bug)",
+                rock: "var(--rock)",
+                ghost: "var(--ghost)",
+                dragon: "var(--dragon)",
+                dark: "var(--dark)",
+                steel: "var(--steel)",
+                fairy: "var(--fairy)"
+            };
+            return colors[type] || "#777";
+        }
+
+        async function traer() {
+            try {
+                // Mostrar la sección al buscar un Pokémon
+                document.getElementById("seccion-pokemon").style.display = "flex";
+
+                let pokemon = document.getElementById("pok").value.toLowerCase();
+                let res = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`);
+                let data = res.data;
+
+                // Actualizar información básica
+                document.getElementById("nombre").textContent = data.name;
+                document.getElementById("numero").textContent = `#${data.id}`;
+                document.getElementById("img").src = data.sprites.other["official-artwork"]["front_default"];
+
+                document.getElementById("altura").textContent = data.height / 10 + " m";
+                document.getElementById("peso").textContent = data.weight / 10 + " kg";
+
+                // Tipos
+                let tipos = data.types.map(t => t.type.name);
+
+                document.getElementById("tipos").innerHTML = "";
+                tipos.forEach(t => {
+                    let div = document.createElement("div");
+                    div.className = `type-badge type-${t}`;
+                    div.textContent = t;
+                    document.getElementById("tipos").appendChild(div);
+                });
+
+                // Fondo de tarjeta según tipo
+                let coloresTipos = tipos.map(t => getColor(t));
+                let fondo = coloresTipos.length === 1 ?
+                    coloresTipos[0] :
+                    `linear-gradient(135deg, ${coloresTipos.join(", ")})`;
+
+                document.getElementById("card-pokemon").style.background = fondo;
+
+                // Debilidades
+                let debSet = new Set();
+                for (let tipo of tipos) {
+                    let tipoRes = await axios.get(`https://pokeapi.co/api/v2/type/${tipo}`);
+                    tipoRes.data.damage_relations.double_damage_from
+                        .forEach(d => debSet.add(d.name));
+                }
+
+                document.getElementById("debilidades").innerHTML = "";
+                [...debSet].forEach(d => {
+                    let div = document.createElement("div");
+                    div.className = `type-badge type-${d}`;
+                    div.textContent = d;
+                    document.getElementById("debilidades").appendChild(div);
+                });
+
+                // Estadísticas
+                const maxStat = 255;
+                let stats = data.stats;
+
+                function percent(val) { return (val / maxStat) * 100; }
+
+                let hp = stats[0].base_stat;
+                let atk = stats[1].base_stat;
+                let def = stats[2].base_stat;
+                let spatk = stats[3].base_stat;
+                let spdef = stats[4].base_stat;
+                let speed = stats[5].base_stat;
+
+                document.getElementById("hp").textContent = `${hp}/255`;
+                document.getElementById("ataque").textContent = `${atk}/255`;
+                document.getElementById("defensa").textContent = `${def}/255`;
+                document.getElementById("spatk").textContent = `${spatk}/255`;
+                document.getElementById("spdef").textContent = `${spdef}/255`;
+                document.getElementById("velocidad").textContent = `${speed}/255`;
+
+                document.getElementById("bar-hp").style.width = percent(hp) + "%";
+                document.getElementById("bar-ataque").style.width = percent(atk) + "%";
+                document.getElementById("bar-defensa").style.width = percent(def) + "%";
+                document.getElementById("bar-spatk").style.width = percent(spatk) + "%";
+                document.getElementById("bar-spdef").style.width = percent(spdef) + "%";
+                document.getElementById("bar-velocidad").style.width = percent(speed) + "%";
+
+                // Color de barras según tipo principal
+                let colorTipo = getColor(tipos[0]);
+                document.querySelectorAll(".bar-fill")
+                    .forEach(b => b.style.background = colorTipo);
+
+            } catch (error) {
+                alert("Pokémon no encontrado. Verifica el nombre o número.");
+                console.error(error);
+            }
+        }
+        
+        // Permitir búsqueda con Enter
+        document.getElementById("pok").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                traer();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
